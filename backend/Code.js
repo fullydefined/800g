@@ -1,17 +1,17 @@
 // entry point for both web app and API requests
 function doGet(e) {
-  // if an "action" parameter is present we treat the request as an API call
+  // external frontend (GitHub Pages) only uses this URL as an API endpoint;
+  // all real UI is served from the static site.  we keep a simple text response
+  // so that visiting the URL manually doesn’t produce an error.
   if (e && e.parameter && e.parameter.action) {
     return handleApiRequest(e);
   }
 
-  // otherwise serve the normal HTML interface (used when you deploy the script as a web app)
-  // Apps Script file names are case‑sensitive; the HTML file in this repo is "index.html"
-  return HtmlService.createHtmlOutputFromFile('index')
-    .setTitle('Workout Logger')
-    // Added maximum-scale=1 and user-scalable=0 to prevent the disorienting iOS input zoom shift
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  // no action parameter means someone simply opened the exec URL in a browser.
+  // return a plain-text reminder rather than trying to load any HTML file.
+  return ContentService.createTextOutput(
+    'This script is the API back end. Use the GitHub Pages front end to view the UI.'
+  ).setMimeType(ContentService.MimeType.TEXT);
 }
 
 // support POST requests from external clients (your GitHub Pages site will likely use POST when sending JSON bodies)
