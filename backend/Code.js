@@ -6,7 +6,8 @@ function doGet(e) {
   }
 
   // otherwise serve the normal HTML interface (used when you deploy the script as a web app)
-  return HtmlService.createHtmlOutputFromFile('Index')
+  // Apps Script file names are case‑sensitive; the HTML file in this repo is "index.html"
+  return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('Workout Logger')
     // Added maximum-scale=1 and user-scalable=0 to prevent the disorienting iOS input zoom shift
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0')
