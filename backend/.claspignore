@@ -1,0 +1,8 @@
+# Ignore everything by default
+**/**
+
+# Except for these specific files
+!code.gs
+!appsscript.json
+!*.js
+!*.html

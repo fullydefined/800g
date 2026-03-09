@@ -1,0 +1,12 @@
+# Google Apps Script / Clasp
+.clasprc.json
+.clasp.json
+node_modules/
+npm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Optional: If you want to keep your script ID private
+backend/.clasp.json
