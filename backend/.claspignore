@@ -2,7 +2,7 @@
 **/**
 
 # Except for these specific files
-!code.gs
+!Code.gs
 !appsscript.json
 !*.js
 !*.html

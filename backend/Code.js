@@ -1,9 +1,86 @@
-function doGet() {
+// entry point for both web app and API requests
+function doGet(e) {
+  // if an "action" parameter is present we treat the request as an API call
+  if (e && e.parameter && e.parameter.action) {
+    return handleApiRequest(e);
+  }
+
+  // otherwise serve the normal HTML interface (used when you deploy the script as a web app)
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('Workout Logger')
     // Added maximum-scale=1 and user-scalable=0 to prevent the disorienting iOS input zoom shift
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+// support POST requests from external clients (your GitHub Pages site will likely use POST when sending JSON bodies)
+function doPost(e) {
+  return handleApiRequest(e);
+}
+
+// handle preflight OPTIONS for CORS
+function doOptions(e) {
+  // returning an empty response with the necessary headers
+  return ContentService.createTextOutput('')
+    .setMimeType(ContentService.MimeType.TEXT)
+    .setHeader('Access-Control-Allow-Origin', '*')
+    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    .setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
+
+// general dispatcher for API actions
+function handleApiRequest(e) {
+  var action;
+  var payload = {};
+
+  // GET parameters take precedence for simple requests
+  if (e.parameter && e.parameter.action) {
+    action = e.parameter.action;
+    payload = e.parameter;
+  }
+
+  // if there's a JSON body, parse it (useful for POST)
+  if (e.postData && e.postData.contents) {
+    try {
+      var body = JSON.parse(e.postData.contents);
+      if (body.action) action = body.action;
+      // merge body properties into payload
+      for (var k in body) {
+        if (body.hasOwnProperty(k)) payload[k] = body[k];
+      }
+    } catch (err) {
+      // ignore parse errors; payload may already be filled from parameters
+    }
+  }
+
+  var result;
+  switch (action) {
+    case 'getTodayWorkout':
+      result = getTodayWorkout(payload.date || payload.dateStr);
+      break;
+    case 'saveWorkoutData':
+      result = saveWorkoutData(payload.workoutData, payload.dateStr, payload.bodyweight);
+      break;
+    case 'getHistoricalExercises':
+      result = getHistoricalExercises();
+      break;
+    case 'getLastWeekRoutine':
+      result = getLastWeekRoutine(payload.date || payload.dateStr);
+      break;
+    case 'getExerciseHistory':
+      result = getExerciseHistory(payload.exerciseName);
+      break;
+    case 'getPrefetchHistory':
+      result = getPrefetchHistory();
+      break;
+    default:
+      result = {error: 'Unknown action: ' + action};
+  }
+
+  var output = ContentService.createTextOutput(JSON.stringify(result));
+  output.setMimeType(ContentService.MimeType.JSON);
+  output.setHeader('Access-Control-Allow-Origin', '*');
+  return output;
 }
 // Hello from VS Code
 function saveWorkoutData(workoutData, dateStr, bodyweight) {

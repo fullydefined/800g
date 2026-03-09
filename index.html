@@ -184,6 +184,60 @@
   </div>
 
   <script>
+    // When the page is served directly by Apps Script, `google.script.run` is available.
+    // When hosted somewhere else (GitHub Pages) we need to call the web‑app URL via fetch.
+    // Set SCRIPT_URL to the published web app endpoint once you deploy via Apps Script.
+    const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+
+    function callApi(action, payload) {
+      payload = Object.assign({ action: action }, payload || {});
+      return fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        mode: 'cors',
+        body: JSON.stringify(payload)
+      }).then(r => {
+        if (!r.ok) throw new Error('API request failed: ' + r.status);
+        return r.json();
+      });
+    }
+
+    // wrapper that normalizes the interface so the rest of the code can stay mostly unchanged
+    function apiRunner() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        return google.script.run;
+      }
+      // fallback object for fetch
+      const runner = {};
+      runner.withSuccessHandler = function(fn) { this._success = fn; return this; };
+      runner.withFailureHandler = function(fn) { this._failure = fn; return this; };
+      runner.getTodayWorkout = function(date) {
+        callApi('getTodayWorkout', { date: date })
+          .then(this._success).catch(this._failure);
+      };
+      runner.getHistoricalExercises = function() {
+        callApi('getHistoricalExercises')
+          .then(this._success).catch(this._failure);
+      };
+      runner.getPrefetchHistory = function() {
+        callApi('getPrefetchHistory')
+          .then(this._success).catch(this._failure);
+      };
+      runner.getLastWeekRoutine = function(date) {
+        callApi('getLastWeekRoutine', { date: date })
+          .then(this._success).catch(this._failure);
+      };
+      runner.getExerciseHistory = function(name) {
+        callApi('getExerciseHistory', { exerciseName: name })
+          .then(this._success).catch(this._failure);
+      };
+      runner.saveWorkoutData = function(data, dateStr, bodyweight) {
+        callApi('saveWorkoutData', { workoutData: data, dateStr: dateStr, bodyweight: bodyweight })
+          .then(this._success).catch(this._failure);
+      };
+      return runner;
+    }
+
     let prefetchedHistory = {};
     let activeHistoryData = {}; 
 
@@ -216,7 +270,7 @@
       document.getElementById('workout-list').innerHTML = ''; 
       document.getElementById('bodyweight-input').value = ''; 
       
-      google.script.run
+      apiRunner()
         .withSuccessHandler(function(response) {
           statusElement.innerText = "";
           document.getElementById('bodyweight-input').value = response.bodyweight || '';
@@ -229,7 +283,7 @@
     }
 
     function loadHistoricalExercises() {
-      google.script.run
+      apiRunner()
         .withSuccessHandler(function(exercises) {
           const dataList = document.getElementById('exercise-history-list');
           dataList.innerHTML = ''; 
@@ -243,7 +297,7 @@
     }
 
     function loadPrefetchHistory() {
-      google.script.run
+      apiRunner()
         .withSuccessHandler(data => prefetchedHistory = data)
         .getPrefetchHistory();
     }
@@ -253,7 +307,7 @@
       const statusElement = document.getElementById('status-message');
       statusElement.innerText = "Fetching routine...";
       
-      google.script.run
+      apiRunner()
         .withSuccessHandler(function(exercises) {
           if (!exercises || exercises.length === 0) {
             statusElement.style.color = 'var(--error-red)';
@@ -294,7 +348,7 @@
         btnElement.innerHTML = "...";
         btnElement.disabled = true;
 
-        google.script.run
+        apiRunner()
           .withSuccessHandler(function(sessionsData) {
             btnElement.innerHTML = originalHtml;
             btnElement.disabled = false;
@@ -542,7 +596,7 @@
         return;
       }
 
-      google.script.run
+      apiRunner()
         .withSuccessHandler(function(response) {
           statusElement.innerText = response;
           loadHistoricalExercises();
