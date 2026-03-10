@@ -19,6 +19,9 @@
             overflow: hidden;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            touch-action: manipulation;
         }
 
         /* Setup Scherm */
@@ -156,7 +159,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 70vmin; /* 35% van de korte kant, past altijd */
+            font-size: 50vmin; /* 25% van de korte kant, past altijd */
             font-weight: 700;
             text-shadow: 3px 3px 15px rgba(0,0,0,0.6);
             pointer-events: none;
@@ -167,7 +170,7 @@
         }
 
         .game-over-text {
-            font-size: 20vmin !important; /* 10% van de korte kant - past met gemak! */
+            font-size: 15vmin !important; /* 7.5% van de korte kant - past met gemak! */
             color: #ff3333;
             animation: pulse 1s infinite alternate;
         }
@@ -185,33 +188,35 @@
             width: 50%;
             display: flex;
             align-items: center;
-            font-size: 15vmin; /* Plus en min ook veiliger geschaald */
+            font-size: 10vmin; /* Plus en min ook veiliger geschaald */
             color: rgba(255, 255, 255, 0.15);
             cursor: pointer;
             z-index: 5;
             overflow: hidden; 
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         #zone-min {
             left: 0;
             justify-content: flex-start;
-            padding-left: 5vw;
+            padding-left: 3vw;
         }
 
         #zone-plus {
             right: 0;
             justify-content: flex-end;
-            padding-right: 5vw;
+            padding-right: 3vw;
         }
 
         /* Kleine Tap Animatie CSS */
         .tap-circle {
             position: absolute;
             border-radius: 50%;
-            width: 80px;  
-            height: 80px; 
-            margin-left: -40px; 
-            margin-top: -40px;
+            width: 10vmin;  
+            height: 10vmin; 
+            margin-left: -5vmin; 
+            margin-top: -5vmin;
             background-color: rgba(255, 255, 255, 0.4);
             pointer-events: none;
             transform: scale(0.5);
@@ -220,7 +225,7 @@
 
         @keyframes tap-anim {
             to {
-                transform: scale(1.2); 
+                transform: scale(1.5); 
                 opacity: 0;
             }
         }
