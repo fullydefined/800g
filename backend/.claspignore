@@ -1,8 +1,0 @@
-# Ignore everything by default
-**/**
-
-# Except for these specific files
-!Code.gs
-!appsscript.json
-!*.js
-!*.html
