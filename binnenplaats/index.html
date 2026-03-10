@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+  body {
+    background-color: #030303;
+    color: #33ff33;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 10px;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  /* Systeem terminal NU BOVENAAN */
+  .system-data {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 15px; /* Ruimte onder de terminal */
+    color: #1a881a;
+    font-size: 14px; 
+    line-height: 1.4;
+    border-bottom: 2px solid #113311; /* Lijn nu aan de onderkant */
+    padding-bottom: 15px;
+    box-sizing: border-box;
+  }
+
+  .status-line { color: #33ff33; font-weight: bold; }
+
+  .monitor-frame {
+    position: relative;
+    width: 100%;
+    max-width: 400px; 
+    border: 40px solid #151515;
+    border-radius: 20px;
+    background: #000;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0,0,0,1);
+  }
+
+  /* Schermen */
+  #login-screen, #loading-screen {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9/16;
+    background: #000;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  #loading-screen { display: none; }
+  #video-content { display: none; position: relative; }
+
+  /* Input & Button */
+  input[type="number"] {
+    background: #111; border: 2px solid #33ff33; color: #33ff33;
+    font-family: 'Courier New', monospace; font-size: 32px;
+    padding: 15px; width: 80%; text-align: center; margin-bottom: 20px;
+    border-radius: 5px; -webkit-appearance: none;
+  }
+
+  .login-btn {
+    background: #33ff33; color: #000; border: none;
+    padding: 15px 40px; font-weight: bold; font-family: 'Courier New', monospace;
+    cursor: pointer; text-transform: uppercase; font-size: 18px; border-radius: 5px;
+  }
+
+  /* Progress Bar */
+  .progress-container {
+    width: 80%;
+    height: 20px;
+    border: 2px solid #33ff33;
+    margin-top: 20px;
+    position: relative;
+  }
+
+  .progress-bar {
+    width: 0%;
+    height: 100%;
+    background: #33ff33;
+    transition: width 0.1s linear;
+  }
+
+  /* Video Elements */
+  .video-container { position: relative; padding-bottom: 177.77%; height: 0; }
+  .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; filter: blur(0.5px) contrast(1.1); }
+  
+  .cam-info { position: absolute; z-index: 30; text-shadow: 4px 4px 8px #000; font-weight: 900; pointer-events: none; color: #ffffff; }
+  .top-left { top: 25px; left: 25px; font-size: 24px; line-height: 1.1; }
+  .bottom-right { bottom: 30px; right: 25px; text-align: right; }
+  .date-string { font-size: 24px; display: block; margin-bottom: 5px; }
+  .time-string { font-size: 48px; display: block; font-weight: bold; }
+
+  .security-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 2px, transparent 4px);
+  }
+
+  .blink { animation: fast-blink 0.5s infinite; }
+  @keyframes fast-blink { 0% {opacity:1} 50% {opacity:0} 100% {opacity:1} }
+</style>
+</head>
+<body>
+
+  <div class="system-data">
+    <span id="system-status">>>> SYSTEM_LOCKED</span><br>
+    BRON: ARCHIVE_C4 | ENCRYPTIE: AES-256
+  </div>
+
+  <div class="monitor-frame">
+    <div id="login-screen">
+      <div style="font-size: 50px; margin-bottom: 20px;">🔒</div>
+      <h2 style="font-size: 18px; color: #33ff33;">SECURE ACCESS</h2>
+      <input type="number" id="passcode" placeholder="0000" inputmode="numeric">
+      <button class="login-btn" onclick="startUnlock()">VERIFIEER</button>
+      <p id="error-msg" style="color: #ff3333; margin-top: 15px; display: none; font-weight: bold;">[ACCESS DENIED]</p>
+    </div>
+
+    <div id="loading-screen">
+      <div class="blink" style="font-size: 20px; margin-bottom: 10px;">DECRYPTING DATA...</div>
+      <div id="load-text" style="font-size: 12px; height: 20px; color: #1a881a;">INITIALIZING...</div>
+      <div class="progress-container">
+        <div id="p-bar" class="progress-bar"></div>
+      </div>
+      <div id="percent" style="margin-top: 10px;">0%</div>
+    </div>
+
+    <div id="video-content">
+      <div class="security-overlay"></div>
+      <div class="cam-info top-left">REPLAY_04<br>CAM: BINNENPLAATS</div>
+      <div class="cam-info bottom-right">
+        <span class="date-string">18-03-2026</span>
+        <span class="time-string">20:03:14</span>
+      </div>
+      <div class="video-container">
+        <iframe src="https://drive.google.com/file/d/1Fk0YeRsG8HgH3xzCyl8dbYsvfFwZbuhm/preview" id="video-iframe"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function startUnlock() {
+      const input = document.getElementById('passcode').value;
+      if (input === "2003") {
+        document.getElementById('login-screen').style.display = "none";
+        document.getElementById('loading-screen').style.display = "flex";
+        runLoadingBar();
+      } else {
+        document.getElementById('error-msg').style.display = "block";
+        document.getElementById('passcode').value = "";
+      }
+    }
+
+    function runLoadingBar() {
+      const bar = document.getElementById('p-bar');
+      const pct = document.getElementById('percent');
+      const lText = document.getElementById('load-text');
+      const status = document.getElementById('system-status');
+      
+      let width = 0;
+      const texts = ["BYPASSING FIREWALL...", "ACCESSING VOL_04...", "OVERRIDING SECURITY...", "SYNCING FEED...", "READY."];
+      
+      const interval = setInterval(() => {
+        if (width >= 100) {
+          clearInterval(interval);
+          setTimeout(showVideo, 500);
+        } else {
+          width += Math.floor(Math.random() * 5) + 1;
+          if (width > 100) width = 100;
+          bar.style.width = width + "%";
+          pct.innerHTML = width + "%";
+          
+          if(width > 80) lText.innerHTML = texts[4];
+          else if(width > 60) lText.innerHTML = texts[3];
+          else if(width > 40) lText.innerHTML = texts[2];
+          else if(width > 20) lText.innerHTML = texts[1];
+        }
+      }, 150);
+      
+      status.innerHTML = ">>> STATUS: DECRYPTIE IN GANG...";
+    }
+
+    function showVideo() {
+      document.getElementById('loading-screen').style.display = "none";
+      document.getElementById('video-content').style.display = "block";
+      document.getElementById('system-status').innerHTML = ">>> STATUS: ARCHIVE_OPENED";
+    }
+  </script>
+
+</body>
+</html>
