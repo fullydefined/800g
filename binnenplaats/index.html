@@ -67,7 +67,7 @@
     background: #111; border: 2px solid #33ff33; color: #33ff33;
     font-family: 'Courier New', monospace; font-size: 32px;
     padding: 15px; width: 80%; text-align: center; margin-bottom: 20px;
-    border-radius: 5px; -webkit-appearance: none;
+    border-radius: 5px; -webkit-appearance: none; appearance: none;
   }
 
   .login-btn {
@@ -144,7 +144,7 @@
         <span class="time-string">20:03:14</span>
       </div>
       <div class="video-container">
-        <video src="assets/video.mp4" id="video-iframe" autoplay muted loop></video>
+        <video src="assets/video.mp4" id="video-iframe" autoplay muted loop playsinline preload="auto"></video>
       </div>
     </div>
   </div>
@@ -195,6 +195,14 @@
       document.getElementById('loading-screen').style.display = "none";
       document.getElementById('video-content').style.display = "block";
       document.getElementById('system-status').innerHTML = ">>> STATUS: ARCHIVE_OPENED";
+      
+      // ADDED: Force the video to play once the UI reveals it
+      const videoFrame = document.getElementById('video-iframe');
+      if (videoFrame) {
+        videoFrame.play().catch(function(error) {
+          console.log("Autoplay prevented:", error);
+        });
+      }
     }
   </script>
 
