@@ -17,15 +17,15 @@
     box-sizing: border-box;
   }
 
-  /* Systeem terminal NU BOVENAANb */
+  /* Systeem terminal NU BOVENAAN */
   .system-data {
     width: 100%;
     max-width: 400px;
-    margin-bottom: 15px; /* Ruimte onder de terminal */
+    margin-bottom: 15px;
     color: #1a881a;
     font-size: 14px; 
     line-height: 1.4;
-    border-bottom: 2px solid #113311; /* Lijn nu aan de onderkant */
+    border-bottom: 2px solid #113311;
     padding-bottom: 15px;
     box-sizing: border-box;
   }
@@ -59,7 +59,7 @@
     text-align: center;
   }
 
-#loading-screen { display: none; }
+  #loading-screen { display: none; }
   #video-content { 
     display: none; 
     position: relative; 
@@ -147,7 +147,7 @@
       <div class="cam-info top-left">REPLAY_04<br>CAM: BINNENPLAATS</div>
       <div class="cam-info bottom-right">
         <span class="date-string">18-03-2026</span>
-        <span class="time-string">20:02:36</span>
+        <span class="time-string" id="camera-time">20:02:36</span>
       </div>
       <div class="video-container">
         <video src="assets/video2.mp4" id="video-iframe" autoplay muted loop playsinline preload="auto"></video>
@@ -156,6 +156,13 @@
   </div>
 
   <script>
+    // Set your starting time here!
+    const startHour = 20;
+    const startMinute = 2;
+    const startSecond = 36;
+    // Calculate total starting seconds
+    const baseSeconds = (startHour * 3600) + (startMinute * 60) + startSecond;
+
     function startUnlock() {
       const input = document.getElementById('passcode').value;
       if (input === "2003") {
@@ -202,11 +209,33 @@
       document.getElementById('video-content').style.display = "block";
       document.getElementById('system-status').innerHTML = ">>> STATUS: ARCHIVE_OPENED";
       
-      // ADDED: Force the video to play once the UI reveals it
       const videoFrame = document.getElementById('video-iframe');
+      const timeDisplay = document.getElementById('camera-time');
+
       if (videoFrame) {
+        // Start the video
         videoFrame.play().catch(function(error) {
           console.log("Autoplay prevented:", error);
+        });
+
+        // Listen for the video's time updating
+        videoFrame.addEventListener('timeupdate', function() {
+          // Add the video's current playback time to our base starting time
+          let currentTotalSeconds = Math.floor(baseSeconds + videoFrame.currentTime);
+
+          // Convert back to HH:MM:SS format
+          let h = Math.floor(currentTotalSeconds / 3600) % 24; // % 24 keeps it under 24 hours
+          let m = Math.floor((currentTotalSeconds % 3600) / 60);
+          let s = currentTotalSeconds % 60;
+
+          // Format with leading zeros (e.g. '02' instead of '2')
+          let formattedTime = 
+            String(h).padStart(2, '0') + ':' + 
+            String(m).padStart(2, '0') + ':' + 
+            String(s).padStart(2, '0');
+
+          // Update the text on the screen
+          timeDisplay.innerText = formattedTime;
         });
       }
     }
